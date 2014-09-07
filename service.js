@@ -62,5 +62,5 @@ service.get('/reload', function(req, res) {
   res.send({'status':'yeaboi!'});
 });
 
-service.listen(8000);
+service.listen(process.env.PORT || 8000);
 console.log('Listening on 8000');
