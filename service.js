@@ -9,10 +9,16 @@ var URL = 'http://jsonoui.com';
 var DB = {}; // ROFLCOPTOR
 var PORT = (process.env.PORT || 8000);
 
+var NOT_FOUND = {
+  status: 404,
+  description: 'The OUI was not found in the public registry.',
+  documentation_url: 'https://github.com/barisbalic/jsonoui/blob/master/README.md'
+};
+
 function keyFromAddressSpace(address) {
   var hyphenated = address.replace(/:/g, '-');
   return hyphenated.substr(0, 8);
-}
+};
 
 service.get('/about', function(req, res) {
   res.send({
@@ -69,18 +75,12 @@ service.get('/ouis/:bytes', function(req, res) {
       }
     });
   } else {
-    res.status(404).send({
-      status: 404,
-      description: 'The OUI was not found in the public registry.'
-    });
+    res.status(404).send(NOT_FOUND);
   }
 });
 
 service.get('*', function(req, res) {
-  res.status(404).send({
-    status: 404,
-    description: 'The OUI was not found in the public registry.'
-  });
+  res.status(404).send(NOT_FOUND);
 });
 
 service.listen(PORT);
