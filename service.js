@@ -20,6 +20,25 @@ function keyFromAddressSpace(address) {
   return hyphenated.substr(0, 8);
 };
 
+function reloadDatabase() {
+  http.get(IEEE_LISTINGS_FILE, function(res) {
+    var generatedDate = '';
+    res.pipe(split()).on('data', function(line) {
+      if(line.match(/Generated:/)) {
+        generatedDate = line.substring(13);
+      }
+
+      if(line.match(/\(hex\)/i)) {
+        var key = keyFromAddressSpace(line.substr(2, 8));
+        var id = line.substr(20);
+        DB[key] = {'organisation': id, 'generatedAt': generatedDate };
+      }
+    });
+  }).on('error', function(err) {
+    console.log('Error: ' + err.message);
+  });
+};
+
 service.get('/about', function(req, res) {
   res.send({
     about: {
@@ -37,32 +56,9 @@ service.get('/about', function(req, res) {
   });
 });
 
-service.get('/reload', function(req, res) {
-  http.get(IEEE_LISTINGS_FILE, function(res) {
-    var generatedDate = '';
-    res.pipe(split()).on('data', function(line) {
-      if(line.match(/Generated:/)) {
-        generatedDate = line.substring(13);
-      }
-
-      if(line.match(/\(hex\)/i)) {
-        var key = keyFromAddressSpace(line.substr(2, 8));
-        var id = line.substr(20);
-        DB[key] = {'organisation': id, 'generatedAt': generatedDate };
-      }
-    });
-  }).on('error', function(err) {
-    console.log('Error: ' + err.message);
-  });
-
-  res.send({
-    reload: {
-      description: 'Will make an effort to reload, no promises.'
-    }
-  });
-});
-
 service.get('/ouis/:bytes', function(req, res) {
+  reloadDatabase();
+
   var key = keyFromAddressSpace(req.params.bytes);
   if(DB[key]) {
     res.send({
